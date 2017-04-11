@@ -35,6 +35,6 @@ try {
 ShellSession.destroy();
 ```
 
-###### Any feedback/feature request is much appreciated.
+###### Any feedback is much appreciated.
 
 :sunglasses: 
