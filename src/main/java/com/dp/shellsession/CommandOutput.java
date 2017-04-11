@@ -1,6 +1,8 @@
-package com.dp.shellsession;/*
+/*
  * Copyright (c) 2017 Darshan Parajuli
  */
+
+package com.dp.shellsession;
 
 public class CommandOutput {
 
