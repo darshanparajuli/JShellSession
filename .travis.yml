@@ -6,11 +6,8 @@ jdk:
 
 sudo: false
 
-env:
-  - LIB_DIR=jshellsession
-
 script:
-  - cd $LIB_DIR && mvn clean verify
+  - mvn clean verify
 
 notifications:
   email:
