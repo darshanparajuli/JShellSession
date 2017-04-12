@@ -2,7 +2,7 @@
  * Copyright (c) 2017 Darshan Parajuli
  */
 
-package com.dp.shellsession;
+package shellsession;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -42,15 +42,14 @@ public class ShellSession {
     private Thread mThreadStdOut;
     private Thread mThreadStdErr;
 
-    private ShellSession(String shellCmd, Map<String, String> env) throws IOException {
+    private ShellSession(String shell, Map<String, String> env) throws IOException {
         mStdOut = new ArrayList<>();
         mStdErr = new ArrayList<>();
         mLock = new ReentrantLock();
         mExitCode = 0;
         mDoneConsumingStdOut = false;
-        final ProcessBuilder processBuilder = new ProcessBuilder(shellCmd);
-        processBuilder.environment().putAll(env);
-        mProcess = processBuilder.start();
+
+        mProcess = createProcess(shell, env);
         mWriter = new BufferedWriter(new OutputStreamWriter(mProcess.getOutputStream()));
         mStdOutReader = new InputStreamReader(mProcess.getInputStream());
         mStdErrReader = new InputStreamReader(mProcess.getErrorStream());
@@ -71,6 +70,12 @@ public class ShellSession {
         mThreadStdErr.start();
     }
 
+    private Process createProcess(String shell, Map<String, String> env) throws IOException {
+        final ProcessBuilder processBuilder = new ProcessBuilder(shell);
+        processBuilder.environment().putAll(env);
+        return processBuilder.start();
+    }
+
     public static boolean init(String shellCmd, Map<String, String> env) {
         if (sInstance == null) {
             try {
@@ -82,8 +87,8 @@ public class ShellSession {
         return true;
     }
 
-    public static boolean init(String shellCmd) {
-        return init(shellCmd, new HashMap<String, String>());
+    public static boolean init(String shell) {
+        return init(shell, new HashMap<String, String>());
     }
 
     public static ShellSession getInstance() {
@@ -99,6 +104,17 @@ public class ShellSession {
             sInstance.killProcess();
             sInstance = null;
         }
+    }
+
+    public static CommandOutput quickRun(String shell, String cmd) throws IOException {
+        if (ShellSession.init(shell)) {
+            try {
+                return ShellSession.getInstance().run(cmd);
+            } finally {
+                ShellSession.destroy();
+            }
+        }
+        throw new IOException("Failed to initialize shell: " + shell);
     }
 
     public CommandOutput run(String cmd) throws IOException {

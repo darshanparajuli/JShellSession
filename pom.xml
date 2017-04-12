@@ -5,10 +5,15 @@
     <name>jshellsession</name>
     <url>http://maven.apache.org</url>
 
+    <modules>
+        <module>jshellsessionlib</module>
+        <module>example</module>
+    </modules>
+
     <groupId>com.dp.jshellsession</groupId>
     <artifactId>jshellsession</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <licenses>
         <license>
