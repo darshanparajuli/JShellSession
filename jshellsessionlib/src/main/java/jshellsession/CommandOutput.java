@@ -2,7 +2,7 @@
  * Copyright (c) 2017 Darshan Parajuli
  */
 
-package shellsession;
+package jshellsession;
 
 public class CommandOutput {
 

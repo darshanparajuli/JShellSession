@@ -2,28 +2,21 @@
  * Copyright (c) 2017 Darshan Parajuli
  */
 
-package shellsession;
+package jshellsession;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ShellSession {
+public class JShell {
 
     private static final String END_MARKER = "[>>END<<]:";
-
-    private static ShellSession sInstance;
-
-    static {
-        sInstance = null;
-    }
 
     private final Object mStdOutConsumerLock = new Object();
 
@@ -42,12 +35,15 @@ public class ShellSession {
     private Thread mThreadStdOut;
     private Thread mThreadStdErr;
 
-    private ShellSession(String shell, Map<String, String> env) throws IOException {
+    private OnCommandOutputListener mOnCommandOutputListener;
+
+    JShell(String shell, Map<String, String> env) throws IOException {
         mStdOut = new ArrayList<>();
         mStdErr = new ArrayList<>();
         mLock = new ReentrantLock();
         mExitCode = 0;
         mDoneConsumingStdOut = false;
+        mOnCommandOutputListener = null;
 
         mProcess = createProcess(shell, env);
         mWriter = new BufferedWriter(new OutputStreamWriter(mProcess.getOutputStream()));
@@ -76,47 +72,6 @@ public class ShellSession {
         return processBuilder.start();
     }
 
-    public static boolean init(String shellCmd, Map<String, String> env) {
-        if (sInstance == null) {
-            try {
-                sInstance = new ShellSession(shellCmd, env);
-            } catch (IOException e) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static boolean init(String shell) {
-        return init(shell, new HashMap<String, String>());
-    }
-
-    public static ShellSession getInstance() {
-        if (sInstance == null) {
-            throw new IllegalStateException("com.dp.shellsession.ShellSession is not available; " +
-                    "did you forget to call com.dp.shellsession.ShellSession.init()?");
-        }
-        return sInstance;
-    }
-
-    public static void destroy() {
-        if (sInstance != null) {
-            sInstance.killProcess();
-            sInstance = null;
-        }
-    }
-
-    public static CommandOutput quickRun(String shell, String cmd) throws IOException {
-        if (ShellSession.init(shell)) {
-            try {
-                return ShellSession.getInstance().run(cmd);
-            } finally {
-                ShellSession.destroy();
-            }
-        }
-        throw new IOException("Failed to initialize shell: " + shell);
-    }
-
     public CommandOutput run(String cmd) throws IOException {
         return run(cmd, 0);
     }
@@ -129,7 +84,7 @@ public class ShellSession {
             }
 
             if (cmd.equals("exit")) {
-                killProcess();
+                close();
                 return new CommandOutput(0);
             }
 
@@ -168,7 +123,11 @@ public class ShellSession {
                 if (c == '\n' || c == '\0') {
                     final String line = builder.toString().trim();
                     mStdErr.add(line);
-                    builder = new StringBuilder();
+                    builder.setLength(0);
+
+                    if (mOnCommandOutputListener != null) {
+                        mOnCommandOutputListener.onNewErrOutLine(line);
+                    }
                 } else {
                     builder.append(c);
                 }
@@ -195,8 +154,12 @@ public class ShellSession {
                         }
                     } else {
                         mStdOut.add(line);
+
+                        if (mOnCommandOutputListener != null) {
+                            mOnCommandOutputListener.onNewStdOutLine(line);
+                        }
                     }
-                    builder = new StringBuilder();
+                    builder.setLength(0);
                 } else {
                     builder.append(c);
                 }
@@ -217,7 +180,11 @@ public class ShellSession {
         }
     }
 
-    private void killProcess() {
+    void setOnCommandOutputListener(OnCommandOutputListener listener) {
+        mOnCommandOutputListener = listener;
+    }
+
+    void close() {
         if (mProcess != null) {
             mProcess.destroy();
             mProcess = null;
@@ -246,5 +213,7 @@ public class ShellSession {
             mThreadStdErr.join(1000);
         } catch (InterruptedException ignored) {
         }
+
+        mOnCommandOutputListener = null;
     }
 }
