@@ -31,6 +31,8 @@ public class Example {
                     break;
                 }
             }
+
+            ShellSession.destroy();
         }
     }
 
