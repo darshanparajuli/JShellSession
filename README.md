@@ -6,15 +6,16 @@ A simple Java library for running shell commands.
 ## Usage
 1. Initialization (required only once for most cases)
 ```java
-if (!ShellSession.init("bash" /* or "sh" */)) {
-    System.err.println("ShellSession initialization failed!");
+if (!JShellSession.init("bash" /* or "sh" */)) {
+    System.err.println("JShellSession initialization failed!");
     System.exit(0);
 } 
 ```
 2. Running comands
 ```java
 try {
-    final CommandOutput output = shellSession.run("uptime");
+    final JShell jshell = JShellSession.getInstance();
+    final CommandOutput output = jshell.run("uptime");
     if (output.exitSuccess()) {
         for (String s : output.stdOut()) {
             System.out.println(s);
@@ -32,7 +33,7 @@ try {
 ```
 3. And finally destroy the shell session when it's no longer needed (required only once for most cases)
 ```java
-ShellSession.destroy();
+JShellSession.destroy();
 ```
 
 ###### Any feedback is much appreciated.
