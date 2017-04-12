@@ -1,22 +1,27 @@
-package com.dp.example;
+/*
+ * Copyright (c) 2017 Darshan Parajuli
+ */
 
-import shellsession.CommandOutput;
-import shellsession.ShellSession;
+package com.dp.examples;
+
+import jshellsession.CommandOutput;
+import jshellsession.JShell;
+import jshellsession.JShellSession;
 
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Example {
+public class ShellSessionExample {
 
     public static void main(String[] args) {
-        if (ShellSession.init("bash")) {
-            final ShellSession shellSession = ShellSession.getInstance();
+        if (JShellSession.init("bash")) {
+            final JShell jshell = JShellSession.getInstance();
 
             final Scanner scanner = new Scanner(System.in);
-            while (shellSession.isRunning()) {
+            while (jshell.isRunning()) {
                 System.out.print(">> ");
                 try {
-                    final CommandOutput output = shellSession.run(scanner.nextLine());
+                    final CommandOutput output = jshell.run(scanner.nextLine());
                     if (output.exitSuccess()) {
                         for (String s : output.stdOut()) {
                             System.out.println(s);
@@ -32,7 +37,7 @@ public class Example {
                 }
             }
 
-            ShellSession.destroy();
+            JShellSession.destroy();
         }
     }
 
