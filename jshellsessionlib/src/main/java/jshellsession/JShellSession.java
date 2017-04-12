@@ -37,8 +37,8 @@ public class JShellSession {
 
     public static JShell getInstance() {
         if (sInstance == null) {
-            throw new IllegalStateException("com.dp.shellsession.ShellSession is not available; " +
-                    "did you forget to call com.dp.shellsession.ShellSession.init()?");
+            throw new IllegalStateException("JShellSession is not available; " +
+                    "did you forget to call JShellSession.init()?");
         }
         return sInstance;
     }
