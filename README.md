@@ -13,8 +13,8 @@ if (!JShellSession.init("bash" /* or "sh" */)) {
 ```
 2. Running comands
 ```java
+final JShell jshell = JShellSession.getInstance();
 try {
-    final JShell jshell = JShellSession.getInstance();
     final CommandOutput output = jshell.run("uptime");
     if (output.exitSuccess()) {
         for (String s : output.stdOut()) {
