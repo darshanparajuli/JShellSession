@@ -4,6 +4,7 @@
 
 package jshellsession;
 
+import java.util.Arrays;
 import java.util.Set;
 
 public class CommandOutput {
@@ -45,5 +46,12 @@ public class CommandOutput {
 
     public boolean exitFailure() {
         return !exitSuccess();
+    }
+
+    @Override
+    public String toString() {
+        return "exit code: " + mExitCode +
+                ", stdout: " + Arrays.toString(mStdOut) +
+                ", errout: " + Arrays.toString(mErrOut);
     }
 }

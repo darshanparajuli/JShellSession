@@ -86,8 +86,14 @@ public class JShell {
         return run(cmd, 0);
     }
 
+    private String validateCommand(String cmd) {
+        cmd = cmd.trim();
+        return cmd.isEmpty() ? ":" : cmd;
+    }
+
     public CommandOutput run(String cmd, long timeout) throws IOException {
         mLock.lock();
+        cmd = validateCommand(cmd);
         try {
             if (mProcess == null) {
                 throw new IllegalStateException("session has been closed");

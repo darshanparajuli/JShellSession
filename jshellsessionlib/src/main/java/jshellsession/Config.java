@@ -23,12 +23,20 @@ public class Config {
         return new Config();
     }
 
+    public Builder builder() {
+        return new Builder(this);
+    }
+
     public static class Builder {
 
         private Config mConfig;
 
         public Builder() {
             mConfig = new Config();
+        }
+
+        private Builder(Config config) {
+            mConfig = config;
         }
 
         public Builder setShellCommand(String shellCommand) {
