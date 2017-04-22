@@ -5,6 +5,7 @@
 package com.dp.examples;
 
 import jshellsession.CommandOutput;
+import jshellsession.Config;
 import jshellsession.JShell;
 import jshellsession.JShellSession;
 
@@ -14,7 +15,7 @@ import java.util.Scanner;
 public class ShellSessionExample {
 
     public static void main(String[] args) {
-        if (JShellSession.init("bash")) {
+        if (JShellSession.init(Config.defaultConfig())) {
             final JShell jshell = JShellSession.getInstance();
 
             final Scanner scanner = new Scanner(System.in);
@@ -27,7 +28,7 @@ public class ShellSessionExample {
                             System.out.println(s);
                         }
                     } else {
-                        for (String s: output.errOut()) {
+                        for (String s : output.errOut()) {
                             System.err.println(s);
                         }
                     }

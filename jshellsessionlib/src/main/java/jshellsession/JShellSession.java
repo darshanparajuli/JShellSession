@@ -5,8 +5,6 @@
 package jshellsession;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class JShellSession {
 
@@ -20,19 +18,15 @@ public class JShellSession {
         // prevent instantiation
     }
 
-    public static boolean init(String shellCmd, Map<String, String> env) {
+    public static boolean init(Config config) {
         if (sInstance == null) {
             try {
-                sInstance = new JShell(shellCmd, env);
+                sInstance = new JShell(config);
             } catch (IOException e) {
                 return false;
             }
         }
         return true;
-    }
-
-    public static boolean init(String shell) {
-        return init(shell, new HashMap<String, String>());
     }
 
     public static JShell getInstance() {
@@ -50,8 +44,8 @@ public class JShellSession {
         }
     }
 
-    public static CommandOutput quickRun(String shell, String cmd) throws IOException {
-        final JShell jshell = new JShell(shell, new HashMap<String, String>());
+    public static CommandOutput quickRun(Config config, String cmd) throws IOException {
+        final JShell jshell = new JShell(config);
         try {
             return jshell.run(cmd);
         } finally {

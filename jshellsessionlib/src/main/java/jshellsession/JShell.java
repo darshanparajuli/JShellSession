@@ -9,8 +9,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,44 +32,53 @@ public class JShell {
     private List<String> mStdOut;
     private List<String> mStdErr;
     private int mExitCode;
+    private Set<Integer> mSuccessExitValues;
 
     private Thread mThreadStdOut;
     private Thread mThreadStdErr;
 
     private OnCommandOutputListener mOnCommandOutputListener;
 
-    JShell(String shell, Map<String, String> env) throws IOException {
+    JShell(Config config) throws IOException {
         mStdOut = new ArrayList<>();
         mStdErr = new ArrayList<>();
         mLock = new ReentrantLock();
         mExitCode = 0;
         mDoneConsumingStdOut = false;
         mOnCommandOutputListener = null;
+        mSuccessExitValues = new HashSet<>(config.mSuccessExitValues);
 
-        mProcess = createProcess(shell, env);
+        mProcess = createProcess(config);
         mWriter = new BufferedWriter(new OutputStreamWriter(mProcess.getOutputStream()));
         mStdOutReader = new InputStreamReader(mProcess.getInputStream());
         mStdErrReader = new InputStreamReader(mProcess.getErrorStream());
+
         mThreadStdOut = new Thread(new Runnable() {
             @Override
             public void run() {
                 processStdOutput();
             }
         });
-        mThreadStdErr = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                processErrOutput();
-            }
-        });
-
         mThreadStdOut.start();
-        mThreadStdErr.start();
+
+        if (config.mRedirectErrorStream) {
+            mThreadStdErr = null;
+        } else {
+            mThreadStdErr = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    processErrOutput();
+                }
+            });
+            mThreadStdErr.start();
+        }
     }
 
-    private Process createProcess(String shell, Map<String, String> env) throws IOException {
-        final ProcessBuilder processBuilder = new ProcessBuilder(shell);
-        processBuilder.environment().putAll(env);
+    private Process createProcess(Config config)
+            throws IOException {
+        final ProcessBuilder processBuilder = new ProcessBuilder(config.mShellCommand);
+        processBuilder.redirectErrorStream(config.mRedirectErrorStream);
+        processBuilder.environment().putAll(config.mEnv);
         return processBuilder.start();
     }
 
@@ -85,7 +95,12 @@ public class JShell {
 
             if (cmd.equals("exit")) {
                 close();
-                return new CommandOutput(0);
+                int exitVal = 0;
+                for (int i : mSuccessExitValues) {
+                    exitVal = i;
+                    break;
+                }
+                return new CommandOutput(exitVal, mSuccessExitValues);
             }
 
             synchronized (mStdOutConsumerLock) {
@@ -108,7 +123,7 @@ public class JShell {
                 }
             }
 
-            return new CommandOutput(mExitCode, mStdOut.toArray(new String[mStdOut.size()]),
+            return new CommandOutput(mExitCode, mSuccessExitValues, mStdOut.toArray(new String[mStdOut.size()]),
                     mStdErr.toArray(new String[mStdErr.size()]));
         } finally {
             mLock.unlock();
@@ -209,9 +224,11 @@ public class JShell {
         } catch (InterruptedException ignored) {
         }
 
-        try {
-            mThreadStdErr.join(1000);
-        } catch (InterruptedException ignored) {
+        if (mThreadStdErr != null) {
+            try {
+                mThreadStdErr.join(1000);
+            } catch (InterruptedException ignored) {
+            }
         }
 
         mOnCommandOutputListener = null;
