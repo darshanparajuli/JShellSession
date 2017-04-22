@@ -6,7 +6,7 @@ A simple Java library for running shell commands.
 ## Usage
 1. Initialization (required only once for most cases)
 ```java
-if (!JShellSession.init("bash" /* or "sh" */)) {
+if (!JShellSession.init(Config.defaultConfig())) {
     System.err.println("JShellSession initialization failed!");
     System.exit(0);
 } 
