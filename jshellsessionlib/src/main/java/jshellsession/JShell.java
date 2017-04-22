@@ -99,16 +99,6 @@ public class JShell {
                 throw new IllegalStateException("session has been closed");
             }
 
-            if (cmd.equals("exit")) {
-                close();
-                int exitVal = 0;
-                for (int i : mSuccessExitValues) {
-                    exitVal = i;
-                    break;
-                }
-                return new CommandOutput(exitVal, mSuccessExitValues);
-            }
-
             synchronized (mStdOutConsumerLock) {
                 mDoneConsumingStdOut = false;
             }
@@ -169,10 +159,7 @@ public class JShell {
                             mStdOut.add(line.substring(0, line.indexOf(END_MARKER)));
                         }
                         mExitCode = Integer.parseInt(line.substring(line.indexOf(":") + 1));
-                        synchronized (mStdOutConsumerLock) {
-                            mDoneConsumingStdOut = true;
-                            mStdOutConsumerLock.notify();
-                        }
+                        notifyDoneConsumingStdOut();
                     } else {
                         mStdOut.add(line);
 
@@ -186,6 +173,21 @@ public class JShell {
                 }
             }
         } catch (IOException ignored) {
+        }
+
+        if (mProcess != null) {
+            try {
+                mExitCode = mProcess.waitFor();
+            } catch (InterruptedException ignored) {
+            }
+        }
+        notifyDoneConsumingStdOut();
+    }
+
+    private void notifyDoneConsumingStdOut() {
+        synchronized (mStdOutConsumerLock) {
+            mDoneConsumingStdOut = true;
+            mStdOutConsumerLock.notify();
         }
     }
 
@@ -209,6 +211,8 @@ public class JShell {
         if (mProcess != null) {
             mProcess.destroy();
             mProcess = null;
+
+            mThreadStdOut.interrupt();
         }
 
         if (mStdOutReader != null) {
