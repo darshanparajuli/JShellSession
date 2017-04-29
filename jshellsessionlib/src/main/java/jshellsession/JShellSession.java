@@ -4,10 +4,7 @@
 
 package jshellsession;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class JShellSession {
+public class JShellSession implements Closeable {
 
     private static final String END_MARKER = "[>>END<<]:";
 
@@ -197,6 +194,7 @@ public class JShellSession {
         mOnCommandOutputListener = listener;
     }
 
+    @Override
     public void close() {
         if (mProcess != null) {
             mProcess.destroy();
