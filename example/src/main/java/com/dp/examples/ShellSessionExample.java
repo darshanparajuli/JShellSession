@@ -4,9 +4,8 @@
 
 package com.dp.examples;
 
-import jshellsession.CommandOutput;
+import jshellsession.CommandResult;
 import jshellsession.Config;
-import jshellsession.JShell;
 import jshellsession.JShellSession;
 
 import java.io.IOException;
@@ -15,14 +14,14 @@ import java.util.Scanner;
 public class ShellSessionExample {
 
     public static void main(String[] args) {
-        if (JShellSession.init(Config.defaultConfig())) {
-            final JShell jshell = JShellSession.getInstance();
-
+        JShellSession jShellSession = null;
+        try {
+            jShellSession = new JShellSession(Config.defaultConfig());
             final Scanner scanner = new Scanner(System.in);
-            while (jshell.isRunning()) {
+            while (jShellSession.isRunning()) {
                 System.out.print(">> ");
                 try {
-                    final CommandOutput output = jshell.run(scanner.nextLine());
+                    final CommandResult output = jShellSession.run(scanner.nextLine());
                     if (output.exitSuccess()) {
                         for (String s : output.stdOut()) {
                             System.out.println(s);
@@ -37,8 +36,12 @@ public class ShellSessionExample {
                     break;
                 }
             }
-
-            JShellSession.destroy();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (jShellSession != null) {
+                jShellSession.close();
+            }
         }
     }
 

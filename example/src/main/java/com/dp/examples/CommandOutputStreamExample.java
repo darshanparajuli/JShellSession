@@ -26,7 +26,6 @@ public class CommandOutputStreamExample {
                     System.err.println(line);
                 }
             });
-            stream.close();
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
         }
