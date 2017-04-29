@@ -7,17 +7,17 @@ package jshellsession;
 import java.util.Arrays;
 import java.util.Set;
 
-public class CommandOutput {
+public class CommandResult {
 
     private int mExitCode;
     private String[] mStdOut, mErrOut;
     private Set<Integer> mSuccessExitValues;
 
-    CommandOutput(int exitCode, Set<Integer> successExitValues) {
+    CommandResult(int exitCode, Set<Integer> successExitValues) {
         this(exitCode, successExitValues, new String[]{}, new String[]{});
     }
 
-    CommandOutput(int exitCode, Set<Integer> successExitValues, String[] stdOut, String[] errOut) {
+    CommandResult(int exitCode, Set<Integer> successExitValues, String[] stdOut, String[] errOut) {
         mExitCode = exitCode;
         mSuccessExitValues = successExitValues;
         mStdOut = stdOut;
