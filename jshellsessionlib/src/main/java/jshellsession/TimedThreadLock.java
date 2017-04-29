@@ -14,7 +14,7 @@ class TimedThreadLock {
         mLockReleased = false;
     }
 
-    void lock() {
+    private void lockIndefinitely() {
         synchronized (mLock) {
             while (!mLockReleased) {
                 try {
@@ -29,7 +29,7 @@ class TimedThreadLock {
         if (duration < 0) {
             throw new IllegalStateException("duration is less than 0");
         } else if (duration == 0) {
-            lock();
+            lockIndefinitely();
         } else {
             synchronized (mLock) {
                 final long startTime = System.currentTimeMillis();
