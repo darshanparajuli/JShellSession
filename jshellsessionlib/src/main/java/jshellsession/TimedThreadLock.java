@@ -6,10 +6,11 @@ package jshellsession;
 
 class TimedThreadLock {
 
-    private final Object mLock = new Object();
+    private final Object mLock;
     private volatile boolean mLockReleased;
 
     TimedThreadLock() {
+        mLock = new Object();
         mLockReleased = false;
     }
 
