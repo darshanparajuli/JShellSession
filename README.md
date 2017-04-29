@@ -7,7 +7,8 @@ A simple Java library for running shell commands.
 ```java
 JShellSession session = null;
 try {
-    // create new JShellSession object, Config.defaultConfig().builder() can be used to customize the default Config object
+    // create new JShellSession object
+    // Config.defaultConfig().builder() can be used to customize the default Config object
     session = new JShellSession(Config.defaultConfig());
     
     // run command, i.e "echo hello world"
