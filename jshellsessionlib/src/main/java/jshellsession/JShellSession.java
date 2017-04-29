@@ -68,8 +68,7 @@ public class JShellSession implements Closeable {
         }
     }
 
-    private Process createProcess(Config config)
-            throws IOException {
+    private Process createProcess(Config config) throws IOException {
         final ProcessBuilder processBuilder = new ProcessBuilder(config.mShellCommand);
         processBuilder.redirectErrorStream(config.mRedirectErrorStream);
         processBuilder.environment().putAll(config.mEnv);
