@@ -87,8 +87,7 @@ public class JShellSession {
     }
 
     private String validateCommand(String cmd) {
-        cmd = cmd.trim();
-        return cmd.isEmpty() ? ":" : cmd;
+        return (cmd == null || cmd.trim().isEmpty()) ? ":" : cmd;
     }
 
     public static CommandResult quickRun(String cmd) throws IOException {
@@ -106,7 +105,6 @@ public class JShellSession {
 
     public CommandResult run(String cmd, long timeout) throws IOException {
         mLock.lock();
-        cmd = validateCommand(cmd);
         try {
             if (mProcess == null) {
                 throw new IllegalStateException("session has been closed");
@@ -119,7 +117,7 @@ public class JShellSession {
             mStdOut.clear();
             mStdErr.clear();
 
-            mWriter.write(String.format("%s; echo \"%s\"$?", cmd, END_MARKER));
+            mWriter.write(String.format("%s; echo \"%s\"$?", validateCommand(cmd), END_MARKER));
             mWriter.newLine();
             mWriter.flush();
 
