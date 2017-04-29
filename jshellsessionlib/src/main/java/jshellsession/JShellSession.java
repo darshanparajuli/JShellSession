@@ -19,15 +19,12 @@ public class JShellSession {
 
     private static final String END_MARKER = "[>>END<<]:";
 
-    private final Object mStdOutConsumerLock = new Object();
-
     private Lock mLock;
     private Process mProcess;
     private BufferedWriter mWriter;
     private InputStreamReader mStdOutReader;
     private InputStreamReader mStdErrReader;
-
-    private volatile boolean mDoneConsumingStdOut;
+    private TimedThreadLock mStdOutConsumerLock;
 
     private List<String> mStdOut;
     private List<String> mStdErr;
@@ -44,7 +41,7 @@ public class JShellSession {
         mStdErr = new ArrayList<>();
         mLock = new ReentrantLock();
         mExitCode = 0;
-        mDoneConsumingStdOut = false;
+        mStdOutConsumerLock = new TimedThreadLock();
         mOnCommandOutputListener = null;
         mSuccessExitValues = new HashSet<>(config.mSuccessExitValues);
 
@@ -110,10 +107,6 @@ public class JShellSession {
                 throw new IllegalStateException("session has been closed");
             }
 
-            synchronized (mStdOutConsumerLock) {
-                mDoneConsumingStdOut = false;
-            }
-
             mStdOut.clear();
             mStdErr.clear();
 
@@ -121,14 +114,7 @@ public class JShellSession {
             mWriter.newLine();
             mWriter.flush();
 
-            synchronized (mStdOutConsumerLock) {
-                while (!mDoneConsumingStdOut) {
-                    try {
-                        mStdOutConsumerLock.wait(timeout);
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            }
+            mStdOutConsumerLock.lock(timeout);
 
             return new CommandResult(mExitCode, mSuccessExitValues, mStdOut.toArray(new String[mStdOut.size()]),
                     mStdErr.toArray(new String[mStdErr.size()]));
@@ -170,7 +156,7 @@ public class JShellSession {
                             mStdOut.add(line.substring(0, line.indexOf(END_MARKER)));
                         }
                         mExitCode = Integer.parseInt(line.substring(line.indexOf(":") + 1));
-                        notifyDoneConsumingStdOut();
+                        mStdOutConsumerLock.unlock();
                     } else {
                         mStdOut.add(line);
 
@@ -184,21 +170,14 @@ public class JShellSession {
                 }
             }
         } catch (IOException ignored) {
-        }
-
-        if (mProcess != null) {
-            try {
-                mExitCode = mProcess.waitFor();
-            } catch (InterruptedException ignored) {
+        } finally {
+            if (mProcess != null) {
+                try {
+                    mExitCode = mProcess.waitFor();
+                } catch (InterruptedException ignored) {
+                }
             }
-        }
-        notifyDoneConsumingStdOut();
-    }
-
-    private void notifyDoneConsumingStdOut() {
-        synchronized (mStdOutConsumerLock) {
-            mDoneConsumingStdOut = true;
-            mStdOutConsumerLock.notify();
+            mStdOutConsumerLock.unlock();
         }
     }
 
