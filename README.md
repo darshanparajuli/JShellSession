@@ -3,37 +3,33 @@
 
 A simple Java library for running shell commands.
 
-## Usage
-1. Initialization (required only once for most cases)
+## Simple example
 ```java
-if (!JShellSession.init(Config.defaultConfig())) {
-    System.err.println("JShellSession initialization failed!");
-    System.exit(0);
-} 
-```
-2. Running comands
-```java
-final JShell jshell = JShellSession.getInstance();
+JShellSession session = null;
 try {
-    final CommandOutput output = jshell.run("uptime");
-    if (output.exitSuccess()) {
-        for (String s : output.stdOut()) {
+    // create new JShellSession object, Config.defaultConfig().builder() can be used to customize the default Config object
+    session = new JShellSession(Config.defaultConfig());
+    
+    // run command, i.e "echo hello world"
+    final CommandResult result = session.run("echo hello world");
+    
+    // check if command ran successfully
+    if (result.exitSuccess()) {
+        // process stdout or stderr (using result.stdErr())
+        for (String s: result.stdOut()) {
             System.out.println(s);
-            // process stdout line by line
         }
     } else {
-        for (String s : output.errOut()) {
-            System.out.println(s);
-            // process stderr line by line
-        }
+        System.err.println("Exit code: " + result.exitCode());
     }
 } catch (IOException e) {
-    System.err.println("Error: " + e.getMessage());
+    e.printStackTrace();
+} finally {
+    // close session
+    if (session != null) {
+        session.close();
+    }
 }
-```
-3. And finally destroy the shell session when it's no longer needed (required only once for most cases)
-```java
-JShellSession.destroy();
 ```
 
 ###### Any feedback is much appreciated.
