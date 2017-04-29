@@ -7,13 +7,13 @@ import java.util.Set;
 
 public class Config {
 
-    String mShellCommand;
+    String[] mShellCommand;
     Map<String, String> mEnv;
     Set<Integer> mSuccessExitValues;
     boolean mRedirectErrorStream;
 
     private Config() {
-        mShellCommand = "sh"; // default
+        mShellCommand = new String[]{"bash"}; // default
         mEnv = new HashMap<>();
         mSuccessExitValues = new HashSet<>();
         mRedirectErrorStream = false;
@@ -39,7 +39,7 @@ public class Config {
             mConfig = config;
         }
 
-        public Builder setShellCommand(String shellCommand) {
+        public Builder setShellCommand(String... shellCommand) {
             mConfig.mShellCommand = shellCommand;
             return this;
         }
