@@ -23,6 +23,9 @@ public class CommandOutputReader extends Reader {
     }
 
     public CommandOutputReader(JShellSession shellSession, String cmd) throws IOException {
+        if (shellSession == null) {
+            throw new IOException("shellSession is null");
+        }
         mSession = shellSession;
         mOutput = mSession.run(cmd).stdOut();
         mCharIndex = 0;
