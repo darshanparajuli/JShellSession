@@ -121,7 +121,7 @@ public class JShellSession implements Closeable {
 
     private void processErrOutput() {
         try {
-            StringBuilder builder = new StringBuilder();
+            final StringBuilder builder = new StringBuilder();
             for (int i = mStdErrReader.read(); i != -1; i = mStdErrReader.read()) {
                 final char c = (char) i;
                 if (c == '\n' || c == '\0') {
@@ -142,7 +142,7 @@ public class JShellSession implements Closeable {
 
     private void processStdOutput() {
         try {
-            StringBuilder builder = new StringBuilder();
+            final StringBuilder builder = new StringBuilder();
             for (int i = mStdOutReader.read(); i != -1; i = mStdOutReader.read()) {
                 final char c = (char) i;
                 if (c == '\n' || c == '\0') {
