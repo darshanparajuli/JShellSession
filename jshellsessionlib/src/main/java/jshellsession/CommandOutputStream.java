@@ -17,11 +17,7 @@ public class CommandOutputStream implements Closeable {
         mThread = null;
     }
 
-    public void stdOutStream(String cmd, OnCommandOutputListener listener) throws IOException {
-        stdOutStream(cmd, 0, listener);
-    }
-
-    public void stdOutStream(final String cmd, final long timeout, OnCommandOutputListener listener) throws IOException {
+    public void stdOutStream(final String cmd, OnCommandOutputListener listener) throws IOException {
         if (mThread != null) {
             throw new IllegalStateException("Object cannot be reused");
         }
@@ -31,18 +27,27 @@ public class CommandOutputStream implements Closeable {
             @Override
             public void run() {
                 try {
-                    mShell.run(cmd, timeout);
+                    mShell.run(cmd);
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    mShell.close();
+                    mShell = null;
                 }
             }
         });
         mThread.start();
     }
 
+    public boolean isStreaming() {
+        return mShell != null;
+    }
+
     @Override
     public void close() {
-        mShell.close();
+        if (mShell != null) {
+            mShell.close();
+        }
         if (mThread != null) {
             try {
                 mThread.join();
