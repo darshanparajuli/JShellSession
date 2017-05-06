@@ -10,11 +10,13 @@ import java.io.IOException;
 public class CommandOutputStream implements Closeable {
 
     private JShellSession mShell;
+    private Config mConfig;
     private Thread mThread;
 
     public CommandOutputStream(Config config) throws IOException {
-        mShell = new JShellSession(config);
+        mConfig = config;
         mThread = null;
+        mShell = null;
     }
 
     public void stdOutStream(final String cmd, OnCommandOutputListener listener) throws IOException {
@@ -22,7 +24,9 @@ public class CommandOutputStream implements Closeable {
             throw new IllegalStateException("Object cannot be reused");
         }
 
+        mShell = new JShellSession(mConfig);
         mShell.setOnCommandOutputListener(listener);
+        
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
