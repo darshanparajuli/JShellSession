@@ -10,7 +10,7 @@ import java.util.Arrays;
 public class CatExample {
 
     public static void main(String[] args) throws IOException {
-        JShellSession shellSession = new JShellSession(Config.defaultConfig());
+        final JShellSession shellSession = new JShellSession(Config.defaultConfig());
 
         final CommandResult result = shellSession.run("ls /proc | sort");
         System.out.println("ls result: " + Arrays.toString(result.stdOut()));
