@@ -28,8 +28,8 @@ public class TestJShellSession {
     public void testLsProc() throws IOException {
         JShellSession shellSession = new JShellSession(Config.defaultConfig());
 
-        final CommandResult result = shellSession.run("ls -1 /");
-        final File[] files = new File("/").listFiles();
+        final CommandResult result = shellSession.run("ls -1 .");
+        final File[] files = new File(".").listFiles();
 
         Assert.assertNotNull(files);
         Assert.assertTrue(result.stdOut().length == files.length);
@@ -41,9 +41,6 @@ public class TestJShellSession {
 
         for (String s : result.stdOut()) {
             Assert.assertTrue(names.contains(s));
-            if (!names.contains(s)) {
-                System.out.println("not contained: " + s);
-            }
         }
 
         shellSession.close();
