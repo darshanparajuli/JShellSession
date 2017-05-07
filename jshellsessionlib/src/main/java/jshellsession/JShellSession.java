@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -17,11 +19,12 @@ public class JShellSession implements Closeable {
     private static final String END_MARKER = "[>>END<<]:";
 
     private Lock mLock;
+    private Condition mReachedEndMarkerCondition;
+    private volatile boolean mReachedEndMarker;
     private Process mProcess;
     private BufferedWriter mWriter;
-    private InputStreamReader mStdOutReader;
-    private InputStreamReader mStdErrReader;
-    private TimedThreadLock mStdOutConsumerLock;
+    private BufferedReader mStdOutReader;
+    private BufferedReader mStdErrReader;
 
     private List<String> mStdOut;
     private List<String> mStdErr;
@@ -37,15 +40,16 @@ public class JShellSession implements Closeable {
         mStdOut = new ArrayList<>();
         mStdErr = new ArrayList<>();
         mLock = new ReentrantLock();
+        mReachedEndMarkerCondition = mLock.newCondition();
+        mReachedEndMarker = false;
         mExitCode = 0;
-        mStdOutConsumerLock = new TimedThreadLock();
         mOnCommandOutputListener = null;
         mSuccessExitValues = new HashSet<>(config.mSuccessExitValues);
 
         mProcess = createProcess(config);
         mWriter = new BufferedWriter(new OutputStreamWriter(mProcess.getOutputStream()));
-        mStdOutReader = new InputStreamReader(mProcess.getInputStream());
-        mStdErrReader = new InputStreamReader(mProcess.getErrorStream());
+        mStdOutReader = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
+        mStdErrReader = new BufferedReader(new InputStreamReader(mProcess.getErrorStream()));
 
         mThreadStdOut = new Thread(new Runnable() {
             @Override
@@ -98,6 +102,7 @@ public class JShellSession implements Closeable {
 
     public CommandResult run(String cmd, long timeout) throws IOException {
         mLock.lock();
+        mReachedEndMarker = false;
         try {
             if (mProcess == null) {
                 throw new IllegalStateException("session has been closed");
@@ -110,7 +115,7 @@ public class JShellSession implements Closeable {
             mWriter.newLine();
             mWriter.flush();
 
-            mStdOutConsumerLock.lock(timeout);
+            waitForEndMarker(timeout);
 
             return new CommandResult(mExitCode, mSuccessExitValues, mStdOut.toArray(new String[mStdOut.size()]),
                     mStdErr.toArray(new String[mStdErr.size()]));
@@ -119,21 +124,35 @@ public class JShellSession implements Closeable {
         }
     }
 
+    private void waitForEndMarker(long timeout) {
+        if (timeout == 0) {
+            while (!mReachedEndMarker) {
+                try {
+                    mReachedEndMarkerCondition.await();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        } else {
+            long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
+            while (!mReachedEndMarker) {
+                if (nanos <= 0L) {
+                    break;
+                }
+                try {
+                    mReachedEndMarkerCondition.awaitNanos(nanos);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+    }
+
     private void processErrOutput() {
         try {
-            final StringBuilder builder = new StringBuilder();
-            for (int i = mStdErrReader.read(); i != -1; i = mStdErrReader.read()) {
-                final char c = (char) i;
-                if (c == '\n' || c == '\0') {
-                    final String line = builder.toString().trim();
-                    mStdErr.add(line);
-                    builder.setLength(0);
-
-                    if (mOnCommandOutputListener != null) {
-                        mOnCommandOutputListener.onNewErrOutLine(line);
-                    }
-                } else {
-                    builder.append(c);
+            for (String line = mStdErrReader.readLine(); line != null; line = mStdErrReader.readLine()) {
+                line = line.replaceAll("\0", " ").trim();
+                mStdErr.add(line);
+                if (mOnCommandOutputListener != null) {
+                    mOnCommandOutputListener.onNewErrOutLine(line);
                 }
             }
         } catch (IOException ignored) {
@@ -142,27 +161,20 @@ public class JShellSession implements Closeable {
 
     private void processStdOutput() {
         try {
-            final StringBuilder builder = new StringBuilder();
-            for (int i = mStdOutReader.read(); i != -1; i = mStdOutReader.read()) {
-                final char c = (char) i;
-                if (c == '\n' || c == '\0') {
-                    final String line = builder.toString().trim();
-                    if (line.contains(END_MARKER)) {
-                        if (!line.startsWith(END_MARKER)) {
-                            mStdOut.add(line.substring(0, line.indexOf(END_MARKER)));
-                        }
-                        mExitCode = Integer.parseInt(line.substring(line.indexOf(":") + 1));
-                        mStdOutConsumerLock.unlock();
-                    } else {
-                        mStdOut.add(line);
-
-                        if (mOnCommandOutputListener != null) {
-                            mOnCommandOutputListener.onNewStdOutLine(line);
-                        }
+            for (String line = mStdOutReader.readLine(); line != null; line = mStdOutReader.readLine()) {
+                line = line.replaceAll("\0", " ").trim();
+                if (line.contains(END_MARKER)) {
+                    final int endMarkerIndex = line.indexOf(END_MARKER);
+                    if (!line.startsWith(END_MARKER)) {
+                        mStdOut.add(line.substring(0, endMarkerIndex).trim());
                     }
-                    builder.setLength(0);
+                    mExitCode = Integer.parseInt(line.substring(endMarkerIndex + END_MARKER.length()));
+                    signal();
                 } else {
-                    builder.append(c);
+                    mStdOut.add(line);
+                    if (mOnCommandOutputListener != null) {
+                        mOnCommandOutputListener.onNewStdOutLine(line);
+                    }
                 }
             }
         } catch (IOException ignored) {
@@ -173,7 +185,17 @@ public class JShellSession implements Closeable {
                 } catch (InterruptedException ignored) {
                 }
             }
-            mStdOutConsumerLock.unlock();
+            signal();
+        }
+    }
+
+    private void signal() {
+        mLock.lock();
+        try {
+            mReachedEndMarkerCondition.signal();
+            mReachedEndMarker = true;
+        } finally {
+            mLock.unlock();
         }
     }
 

@@ -13,6 +13,7 @@ public class CommandOutputReader extends Reader {
     private int mCharIndex;
     private int mArrayIndex;
     private JShellSession mSession;
+    private boolean mKeepSessionOpen;
 
     public CommandOutputReader(String cmd) throws IOException {
         this(Config.defaultConfig(), cmd);
@@ -28,8 +29,13 @@ public class CommandOutputReader extends Reader {
         }
         mSession = shellSession;
         mOutput = mSession.run(cmd).stdOut();
+        mKeepSessionOpen = false;
         mCharIndex = 0;
         mArrayIndex = 0;
+    }
+
+    public void keepSessionOpen() {
+        mKeepSessionOpen = true;
     }
 
     @Override
@@ -60,7 +66,9 @@ public class CommandOutputReader extends Reader {
 
     @Override
     public void close() {
-        mSession.close();
+        if (!mKeepSessionOpen) {
+            mSession.close();
+        }
         mOutput = null;
     }
 }

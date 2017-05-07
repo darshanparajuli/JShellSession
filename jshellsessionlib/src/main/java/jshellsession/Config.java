@@ -13,7 +13,7 @@ public class Config {
     boolean mRedirectErrorStream;
 
     private Config() {
-        mShellCommand = new String[]{"bash"}; // default
+        mShellCommand = new String[]{"sh"}; // default
         mEnv = new HashMap<>();
         mSuccessExitValues = new HashSet<>();
         mRedirectErrorStream = false;
