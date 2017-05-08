@@ -139,8 +139,8 @@ public class JShellSession implements Closeable {
                     break;
                 }
                 try {
-                    mReachedEndMarkerCondition.awaitNanos(nanos);
-                } catch (InterruptedException e) {
+                    nanos = mReachedEndMarkerCondition.awaitNanos(nanos);
+                } catch (InterruptedException ignored) {
                 }
             }
         }
