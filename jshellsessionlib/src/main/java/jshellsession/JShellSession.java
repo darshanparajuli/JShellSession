@@ -39,7 +39,7 @@ public class JShellSession implements Closeable {
     public JShellSession(Config config) throws IOException {
         mStdOut = new ArrayList<>();
         mStdErr = new ArrayList<>();
-        mLock = new ReentrantLock();
+        mLock = new ReentrantLock(true);
         mReachedEndMarkerCondition = mLock.newCondition();
         mReachedEndMarker = false;
         mExitCode = 0;
