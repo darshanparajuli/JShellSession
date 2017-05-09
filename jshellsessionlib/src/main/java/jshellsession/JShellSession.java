@@ -192,8 +192,8 @@ public class JShellSession implements Closeable {
     private void signal() {
         mLock.lock();
         try {
-            mReachedEndMarkerCondition.signal();
             mReachedEndMarker = true;
+            mReachedEndMarkerCondition.signal();
         } finally {
             mLock.unlock();
         }
