@@ -14,8 +14,12 @@ public class CommandOutputStreamExample {
 
     public static void main(String[] args) {
         try {
-            final CommandOutputStream stream = new CommandOutputStream(Config.defaultConfig());
-            stream.stdOutStream("top -b -d 1", new OnCommandOutputListener() {
+            final Config config = Config.defaultConfig()
+                    .builder()
+                    .setShellCommand("top", "-b", "-d", "1")
+                    .build();
+            final CommandOutputStream stream = new CommandOutputStream(config);
+            stream.start(new OnCommandOutputListener() {
                 @Override
                 public void onNewStdOutLine(String line) {
                     System.out.println(line);

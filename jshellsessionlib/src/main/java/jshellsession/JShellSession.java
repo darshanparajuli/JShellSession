@@ -37,13 +37,17 @@ public class JShellSession implements Closeable {
     private OnCommandOutputListener mOnCommandOutputListener;
 
     public JShellSession(Config config) throws IOException {
+        this(config, null);
+    }
+
+    JShellSession(Config config, OnCommandOutputListener listener) throws IOException {
         mStdOut = new ArrayList<>();
         mStdErr = new ArrayList<>();
         mLock = new ReentrantLock(true);
         mReachedEndMarkerCondition = mLock.newCondition();
         mReachedEndMarker = false;
         mExitCode = 0;
-        mOnCommandOutputListener = null;
+        mOnCommandOutputListener = listener;
         mSuccessExitValues = new HashSet<>(config.mSuccessExitValues);
 
         mProcess = createProcess(config);
@@ -209,10 +213,6 @@ public class JShellSession implements Closeable {
         } catch (IllegalThreadStateException ignored) {
             return true;
         }
-    }
-
-    public void setOnCommandOutputListener(OnCommandOutputListener listener) {
-        mOnCommandOutputListener = listener;
     }
 
     @Override

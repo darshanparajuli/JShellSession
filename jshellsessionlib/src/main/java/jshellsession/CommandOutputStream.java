@@ -11,52 +11,28 @@ public class CommandOutputStream implements Closeable {
 
     private JShellSession mShell;
     private Config mConfig;
-    private Thread mThread;
 
     public CommandOutputStream(Config config) throws IOException {
         mConfig = config;
-        mThread = null;
         mShell = null;
     }
 
-    public void stdOutStream(final String cmd, OnCommandOutputListener listener) throws IOException {
-        if (mThread != null) {
-            throw new IllegalStateException("Object cannot be reused");
+    public void start(OnCommandOutputListener listener) throws IOException {
+        if (mShell != null) {
+            throw new IllegalStateException("CommandOutputStream object cannot be reused");
         }
 
-        mShell = new JShellSession(mConfig);
-        mShell.setOnCommandOutputListener(listener);
-        
-        mThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mShell.run(cmd);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    mShell.close();
-                    mShell = null;
-                }
-            }
-        });
-        mThread.start();
+        mShell = new JShellSession(mConfig, listener);
     }
 
-    public boolean isStreaming() {
-        return mShell != null;
+    public boolean isAlive() {
+        return mShell != null && mShell.isRunning();
     }
 
     @Override
     public void close() {
         if (mShell != null) {
             mShell.close();
-        }
-        if (mThread != null) {
-            try {
-                mThread.join();
-            } catch (InterruptedException ignored) {
-            }
         }
     }
 }
