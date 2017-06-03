@@ -29,7 +29,7 @@ public class CommandOutputReader extends Reader {
         }
         mSession = shellSession;
         mOutput = mSession.run(cmd).stdOut();
-        mKeepSessionOpen = false;
+        mKeepSessionOpen = true;
         mCharIndex = 0;
         mArrayIndex = 0;
     }
