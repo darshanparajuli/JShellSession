@@ -8,11 +8,9 @@ public class CommandOutputListenerAdapter implements OnCommandOutputListener {
 
     @Override
     public void onNewStdOutLine(String line) {
-
     }
 
     @Override
     public void onNewErrOutLine(String line) {
-
     }
 }
