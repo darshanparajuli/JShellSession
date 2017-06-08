@@ -72,12 +72,13 @@ public class TestJShellSession {
             if (readerResult == null) {
                 readerResult = "";
             } else {
-                readerResult = readerResult.replaceAll("\0", " ").trim();
+                readerResult = readerResult.replace('\0', ' ').trim();
             }
             reader.close();
 
             final CommandResult result = shellSession.run("cat " + cmdlineFile.getAbsolutePath());
-            final String shellResult = result.stdOut().length == 0 ? "" : result.stdOut()[0];
+            final String shellResult = result.stdOut().length == 0 ? "" :
+                    result.stdOut()[0].replace('\0', ' ').trim();
             Assert.assertTrue(readerResult.equals(shellResult));
         }
 
