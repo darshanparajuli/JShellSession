@@ -8,13 +8,18 @@ import jshellsession.CommandResult;
 import jshellsession.Config;
 import jshellsession.JShellSession;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
 public class TestJShellSession {
+
+    @Rule
+    public final ExpectedException mExpectedException = ExpectedException.none();
 
     @Test
     public void testEchoHelloWorld() throws IOException {
@@ -104,10 +109,12 @@ public class TestJShellSession {
         jShellSession.close();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testExitCodeException() throws IOException {
         try (final JShellSession jShellSession = new JShellSession(Config.defaultConfig())) {
             Assert.assertTrue(jShellSession.isRunning());
+            
+            mExpectedException.expect(IllegalStateException.class);
             jShellSession.getExitCode();
         }
     }
