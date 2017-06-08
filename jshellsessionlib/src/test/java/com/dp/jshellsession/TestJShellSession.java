@@ -70,6 +70,10 @@ public class TestJShellSession {
 
         Assert.assertNotNull(files);
         for (File f : files) {
+            if (!f.exists()) {
+                continue;
+            }
+
             final File cmdlineFile = new File(f, "cmdline");
             final BufferedReader reader = new BufferedReader(new FileReader(cmdlineFile));
             String readerResult = reader.readLine();
