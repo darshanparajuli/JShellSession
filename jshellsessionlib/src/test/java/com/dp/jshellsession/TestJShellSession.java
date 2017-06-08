@@ -26,7 +26,9 @@ public class TestJShellSession {
 
     @Test
     public void testLsProc() throws IOException {
-        JShellSession shellSession = new JShellSession(Config.defaultConfig());
+        final JShellSession shellSession = new JShellSession(Config.defaultConfig());
+
+        Assert.assertTrue(shellSession.isRunning());
 
         final CommandResult result = shellSession.run("ls -1 .");
         final File[] files = new File(".").listFiles();
@@ -49,7 +51,9 @@ public class TestJShellSession {
 
     @Test
     public void testCmdLine() throws IOException {
-        JShellSession shellSession = new JShellSession(Config.defaultConfig());
+        final JShellSession shellSession = new JShellSession(Config.defaultConfig());
+
+        Assert.assertTrue(shellSession.isRunning());
 
         final File[] files = new File("/proc")
                 .listFiles(new FilenameFilter() {
