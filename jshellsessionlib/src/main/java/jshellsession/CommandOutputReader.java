@@ -12,30 +12,31 @@ public class CommandOutputReader extends Reader {
     private String[] mOutput;
     private int mCharIndex;
     private int mArrayIndex;
-    private JShellSession mSession;
-    private boolean mKeepSessionOpen;
 
     public CommandOutputReader(String cmd) throws IOException {
         this(Config.defaultConfig(), cmd);
     }
 
     public CommandOutputReader(Config config, String cmd) throws IOException {
-        this(new JShellSession(config), cmd);
+        this(new JShellSession(config), cmd, true);
     }
 
     public CommandOutputReader(JShellSession shellSession, String cmd) throws IOException {
+        this(shellSession, cmd, false);
+    }
+
+    private CommandOutputReader(JShellSession shellSession, String cmd, boolean closeSession) throws IOException {
         if (shellSession == null) {
             throw new IOException("shellSession is null");
         }
-        mSession = shellSession;
-        mOutput = mSession.run(cmd).stdOut();
-        mKeepSessionOpen = true;
+
+        mOutput = shellSession.run(cmd).stdOut();
         mCharIndex = 0;
         mArrayIndex = 0;
-    }
 
-    public void keepSessionOpen() {
-        mKeepSessionOpen = true;
+        if (closeSession) {
+            shellSession.close();
+        }
     }
 
     @Override
@@ -66,9 +67,6 @@ public class CommandOutputReader extends Reader {
 
     @Override
     public void close() {
-        if (!mKeepSessionOpen) {
-            mSession.close();
-        }
         mOutput = null;
     }
 }
