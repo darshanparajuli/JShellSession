@@ -221,6 +221,13 @@ public class JShellSession implements Closeable {
         }
     }
 
+    public int getExitCode() {
+        if (isRunning()) {
+            throw new IllegalStateException("JShellSession is still running");
+        }
+        return mExitCode;
+    }
+
     @Override
     public void close() {
         if (mProcess != null) {
