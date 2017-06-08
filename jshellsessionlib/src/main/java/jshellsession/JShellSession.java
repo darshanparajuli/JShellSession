@@ -5,6 +5,9 @@
 package jshellsession;
 
 import java.io.*;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,8 +55,10 @@ public class JShellSession implements Closeable {
 
         mProcess = createProcess(config);
         mWriter = new BufferedWriter(new OutputStreamWriter(mProcess.getOutputStream()));
-        mStdOutReader = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
-        mStdErrReader = new BufferedReader(new InputStreamReader(mProcess.getErrorStream()));
+        final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.IGNORE);
+        mStdOutReader = new BufferedReader(new InputStreamReader(mProcess.getInputStream(), decoder));
+        mStdErrReader = new BufferedReader(new InputStreamReader(mProcess.getErrorStream(), decoder));
 
         mThreadStdOut = new Thread(new Runnable() {
             @Override
