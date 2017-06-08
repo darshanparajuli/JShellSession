@@ -94,4 +94,22 @@ public class TestJShellSession {
         Assert.assertFalse(shellSession.isRunning());
     }
 
+    @Test
+    public void testExitCode() throws IOException {
+        final JShellSession jShellSession = new JShellSession(Config.defaultConfig());
+        Assert.assertTrue(jShellSession.isRunning());
+        jShellSession.run("exit 1");
+        Assert.assertFalse(jShellSession.isRunning());
+        Assert.assertEquals(1, jShellSession.getExitCode());
+        jShellSession.close();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testExitCodeException() throws IOException {
+        try (final JShellSession jShellSession = new JShellSession(Config.defaultConfig())) {
+            Assert.assertTrue(jShellSession.isRunning());
+            jShellSession.getExitCode();
+        }
+    }
+
 }
