@@ -14,9 +14,7 @@ import java.util.Scanner;
 public class ShellSessionExample {
 
     public static void main(String[] args) {
-        JShellSession jShellSession = null;
-        try {
-            jShellSession = new JShellSession(Config.defaultConfig());
+        try (final JShellSession jShellSession = new JShellSession(Config.defaultConfig())) {
             final Scanner scanner = new Scanner(System.in);
             while (jShellSession.isRunning()) {
                 System.out.print(">> ");
@@ -36,12 +34,9 @@ public class ShellSessionExample {
                     break;
                 }
             }
+            System.out.println("Exit code: " + jShellSession.getExitCode());
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            if (jShellSession != null) {
-                jShellSession.close();
-            }
         }
     }
 
