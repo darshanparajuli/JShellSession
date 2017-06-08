@@ -153,7 +153,7 @@ public class JShellSession implements Closeable {
     private void processErrOutput() {
         try {
             for (String line = mStdErrReader.readLine(); line != null; line = mStdErrReader.readLine()) {
-                line = line.replace('\0', ' ').trim();
+                line = line.trim();
                 mStdErr.add(line);
                 if (mOnCommandOutputListener != null) {
                     mOnCommandOutputListener.onNewErrOutLine(line);
@@ -166,7 +166,7 @@ public class JShellSession implements Closeable {
     private void processStdOutput() {
         try {
             for (String line = mStdOutReader.readLine(); line != null; line = mStdOutReader.readLine()) {
-                line = line.replace('\0', ' ').trim();
+                line = line.trim();
                 if (line.contains(END_MARKER)) {
                     final int endMarkerIndex = line.indexOf(END_MARKER);
                     if (!line.startsWith(END_MARKER)) {
