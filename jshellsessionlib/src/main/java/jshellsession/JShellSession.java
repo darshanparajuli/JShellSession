@@ -187,6 +187,7 @@ public class JShellSession implements Closeable {
                 try {
                     mExitCode = mProcess.waitFor();
                 } catch (InterruptedException ignored) {
+                    mExitCode = 1;
                 }
             }
             signal();
