@@ -4,9 +4,9 @@
 
 package com.dp.examples;
 
+import jshellsession.CommandOutputListenerAdapter;
 import jshellsession.CommandOutputStream;
 import jshellsession.Config;
-import jshellsession.OnCommandOutputListener;
 
 import java.io.IOException;
 
@@ -19,7 +19,7 @@ public class CommandOutputStreamExample {
                     .setShellCommand("top", "-b", "-d", "1")
                     .build();
             final CommandOutputStream stream = new CommandOutputStream(config);
-            stream.start(new OnCommandOutputListener() {
+            stream.start(new CommandOutputListenerAdapter() {
                 @Override
                 public void onNewStdOutLine(String line) {
                     System.out.println(line);

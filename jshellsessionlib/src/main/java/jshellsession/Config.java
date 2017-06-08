@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2017 Darshan Parajuli
+ */
+
 package jshellsession;
 
 import java.util.HashMap;

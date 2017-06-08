@@ -220,9 +220,8 @@ public class JShellSession implements Closeable {
     public void close() {
         if (mProcess != null) {
             mProcess.destroy();
-            mProcess = null;
-
             mThreadStdOut.interrupt();
+            mProcess = null;
         }
 
         if (mStdOutReader != null) {

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2017 Darshan Parajuli
+ */
+
 package com.dp.examples;
 
 import jshellsession.CommandResult;
