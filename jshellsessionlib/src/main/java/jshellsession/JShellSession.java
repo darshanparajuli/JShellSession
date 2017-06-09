@@ -5,9 +5,6 @@
 package jshellsession;
 
 import java.io.*;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -55,10 +52,8 @@ public class JShellSession implements Closeable {
 
         mProcess = createProcess(config);
         mWriter = new BufferedWriter(new OutputStreamWriter(mProcess.getOutputStream()));
-        final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
-                .onMalformedInput(CodingErrorAction.IGNORE);
-        mStdOutReader = new BufferedReader(new InputStreamReader(mProcess.getInputStream(), decoder));
-        mStdErrReader = new BufferedReader(new InputStreamReader(mProcess.getErrorStream(), decoder));
+        mStdOutReader = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
+        mStdErrReader = new BufferedReader(new InputStreamReader(mProcess.getErrorStream()));
 
         mThreadStdOut = new Thread(new Runnable() {
             @Override
@@ -171,7 +166,7 @@ public class JShellSession implements Closeable {
     private void processStdOutput() {
         try {
             for (String line = mStdOutReader.readLine(); line != null; line = mStdOutReader.readLine()) {
-                line = line.trim();
+                line = line.replace('\0', ' ').trim();
                 if (line.contains(END_MARKER)) {
                     final int endMarkerIndex = line.indexOf(END_MARKER);
                     if (!line.startsWith(END_MARKER)) {
