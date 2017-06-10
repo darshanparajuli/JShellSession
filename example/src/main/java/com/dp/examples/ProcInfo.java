@@ -4,8 +4,7 @@ import jshellsession.Config;
 import jshellsession.JShellSession;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ProcInfo {
 
@@ -28,7 +27,9 @@ public class ProcInfo {
             e.printStackTrace();
         }
 
-        for (int pid : map.keySet()) {
+        final List<Integer> pids = new ArrayList<>(map.keySet());
+        Collections.sort(pids);
+        for (int pid : pids) {
             System.out.printf("%6d => %s\n", pid, map.get(pid));
         }
     }
