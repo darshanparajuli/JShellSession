@@ -54,8 +54,18 @@ public class TestJShellSession {
         Assert.assertFalse(shellSession.isRunning());
     }
 
+    private boolean isPlatformLinux() {
+        final String osName = System.getProperty("os.name");
+        return osName != null && osName.toLowerCase().contains("linux");
+    }
+
     @Test
     public void testCmdLine() throws IOException {
+        if (!isPlatformLinux()) {
+            System.out.println("Skipping testCmdLine() since the OS is not Linux");
+            return;
+        }
+
         final JShellSession shellSession = new JShellSession(Config.defaultConfig());
 
         Assert.assertTrue(shellSession.isRunning());
@@ -113,7 +123,7 @@ public class TestJShellSession {
     public void testExitCodeException() throws IOException {
         try (final JShellSession jShellSession = new JShellSession(Config.defaultConfig())) {
             Assert.assertTrue(jShellSession.isRunning());
-            
+
             mExpectedException.expect(IllegalStateException.class);
             jShellSession.getExitCode();
         }
