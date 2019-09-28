@@ -25,8 +25,8 @@ public class TestJShellSession {
     public void testEchoHelloWorld() throws IOException {
         final CommandResult output = JShellSession.quickRun(Config.defaultConfig(), "echo hello world");
         Assert.assertTrue(output.exitSuccess());
-        Assert.assertTrue(output.stdOut().length == 1);
-        Assert.assertTrue(output.stdOut()[0].equals("hello world"));
+        Assert.assertEquals(1, output.stdOut().length);
+        Assert.assertEquals("hello world", output.stdOut()[0]);
     }
 
     @Test
@@ -39,7 +39,7 @@ public class TestJShellSession {
         final File[] files = new File(".").listFiles();
 
         Assert.assertNotNull(files);
-        Assert.assertTrue(result.stdOut().length == files.length);
+        Assert.assertEquals(result.stdOut().length, files.length);
 
         final Set<String> names = new HashSet<>();
         for (File f : files) {
@@ -102,7 +102,7 @@ public class TestJShellSession {
             final CommandResult result = shellSession.run("cat " + cmdlineFile.getAbsolutePath());
             final String shellResult = result.stdOut().length == 0 ? "" :
                     result.stdOut()[0].replace('\0', ' ').trim();
-            Assert.assertTrue(readerResult.equals(shellResult));
+            Assert.assertEquals(readerResult, shellResult);
         }
 
         shellSession.close();
